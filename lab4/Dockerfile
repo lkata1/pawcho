@@ -5,12 +5,8 @@
 # this file.
 FROM ubuntu:latest AS base
 
+# Author label
 LABEL org.opencontainers.image.authors="Kata <s101588@pollub.edu.pl>"
-
-################################################################################
-# Create a final stage for running your application.
-#
-FROM base AS final
 
 # Update ubuntu and download packages
 RUN apt update \
@@ -18,6 +14,21 @@ RUN apt update \
     && apt install -y apache2 \
     && rm -rf /var/cache/apt/* \
     && rm -rf /var/lib/apt/lists/*
+
+################################################################################
+# Build html files
+#
+FROM oven/bun:1.3.0 AS build
+WORKDIR /app
+COPY frontend/package.json .
+RUN bun install
+COPY frontend .
+RUN bun run build
+
+################################################################################
+# Create a final stage for running your application.
+#
+FROM base AS final
 
 # Env for apache config
 ENV APACHE_RUN_DIR=/var/www \
@@ -29,7 +40,7 @@ ENV APACHE_RUN_DIR=/var/www \
 EXPOSE 80/tcp
 
 # Copy the executable from the "build" stage.
-COPY ./index.html /var/www/html/
+COPY --from=build /app/dist/ /var/www/html/
 
 # What the container should run when it is started.
 CMD [ "apachectl", "-D", "FOREGROUND" ]
