@@ -87,4 +87,4 @@ root@Proxy:~# curl http://127.0.0.1
 </body>
 </html>
 ```
-![screen z przeglądarki](images/lab5_browser.png)
+![screen z przeglądarki](images/browser.png)
